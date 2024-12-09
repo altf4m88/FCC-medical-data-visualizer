@@ -22,7 +22,7 @@ def draw_cat_plot():
     df_cat_grouped = df_cat.groupby(['cardio', 'variable', 'value']).size().reset_index(name='count')
 
     catplot = sns.catplot(x='variable', y='count', hue='value', col='cardio', data=df_cat_grouped, kind='bar', height=5, aspect=1.5)
-
+    catplot.set_axis_labels("variable", "total")
     fig = catplot.fig
 
     # 9
@@ -33,11 +33,14 @@ def draw_cat_plot():
 # 10
 def draw_heat_map():
     # 11
-    df_heat = df[df['ap_lo'] <= df['ap_hi']]
+    df_heat = df[(df['ap_lo'] <= df['ap_hi']) &
+                 (df['height'] >= df['height'].quantile(0.025)) &
+                 (df['height'] <= df['height'].quantile(0.975)) &
+                 (df['weight'] >= df['weight'].quantile(0.025)) &
+                 (df['weight'] <= df['weight'].quantile(0.975))]
 
-    df_heat = df[(df['height'] >= df['height'].quantile(0.025)) & (df['height'] <= df['height'].quantile(0.975))]
-    df_heat = df[(df['weight'] >= df['weight'].quantile(0.025)) & (df['weight'] <= df['weight'].quantile(0.975))]
-
+    df_heat = df_heat.drop(columns=['bmi'])
+    
     # 12
     corr = df_heat.corr()
 
@@ -49,7 +52,7 @@ def draw_heat_map():
     heatmap = sns.heatmap(corr, annot=True, fmt=".1f", mask=mask, cmap="coolwarm", cbar=True, square=True)
 
     # 14
-    fig = heatmap.fig
+    fig = plt.gcf()
 
     # 16
     fig.savefig('heatmap.png')
